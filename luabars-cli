@@ -1,0 +1,6 @@
+#!/bin/luajit
+local luabars = require("lib.luabars")
+local helpers = {}
+local template = luabars.from_file(arg[1], helpers)
+
+print(template())
