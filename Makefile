@@ -11,3 +11,5 @@ t/%/output.txt: t/% luabars-cli $(LUA) t/%/expected.txt t/%/input.handlebars t/%
 	./luabars-cli $</input.handlebars $</variables.json > $@
 	diff $</expected.txt $@
 
+clean:
+	rm t/*/output.txt
