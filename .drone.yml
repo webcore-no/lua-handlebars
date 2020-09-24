@@ -6,7 +6,6 @@ steps:
   - name: greeting
     image: nickblah/luajit:alpine
     commands:
-      - apk add --no-cache make bash util-linux
-      - whereis lua
-      - whereis luajit
-      - bash -c 'make test'
+      - apk add --no-cache make
+      - ln -s /usr/local/bin/luajit /bin/luajit
+      - make test
