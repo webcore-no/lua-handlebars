@@ -6,5 +6,5 @@ steps:
   - name: greeting
     image: nickblah/luajit:alpine
     commands:
-      - apk add --no-cache make
-      - make test
+      - apk add --no-cache make bash
+      - bash -c 'make test'
