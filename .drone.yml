@@ -7,4 +7,5 @@ steps:
     image: nickblah/luajit:alpine
     commands:
       - apk add --no-cache make bash
+      - bash -c 'ls'
       - bash -c 'make test'
