@@ -1,4 +1,3 @@
-local cjson = require("cjson.safe")
 local format = string.format
 local concat = table.concat
 local str_rep = string.rep

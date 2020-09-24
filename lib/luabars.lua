@@ -1,5 +1,4 @@
 local re = require("relabel")
-local cjson = require("cjson.safe")
 local format = string.format
 
 local code = require("lib.luabars.code")
@@ -143,7 +142,6 @@ function _M.from_file(path)
 		err_printf("%s:%s", path, err)
 		return
 	end
-	print(cjson.encode(ast))
 	local code, err = code.ast_to_code(ast)
 	if not code then
 		err_printf("[ERROR] %s", err)
