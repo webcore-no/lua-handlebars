@@ -7,5 +7,6 @@ steps:
     image: nickblah/luajit:alpine
     commands:
       - apk add --no-cache make bash
-      - bash -c 'ls'
+      - whereis lua
+      - whereis luajit
       - bash -c 'make test'
