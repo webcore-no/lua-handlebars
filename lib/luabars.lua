@@ -15,7 +15,7 @@ local terror = {eof = "expected end of file"}
 local comp = re.compile([[
    root <-  {|{:type: '' -> 'root':} {:children: program :} |} (!. / %{eof})
    program <- {| statement* |}
-   statement <- {| {:type: '' -> 'print' :} {:value: comment :} |}
+   statement <- {| {:type: '' -> 'comment' :} {:value: comment :} |}
                / {| {:type: '' -> 'content' :} {:value: content :} |}
                / {| {:type: '' -> 'partialBlock' :} {:value: partialBlock :} |}
                / {| {:type: '' -> 'partial' :} {:value: partial :} |}
@@ -23,8 +23,8 @@ local comp = re.compile([[
                / {| {:type: '' -> 'block':} {:value: block :} |}
                / {| {:type: '' -> 'mustache' :} {:value:  mustache :} |}
 
-   comment <-  '{{!--' (!('--' close) .)* '--' close
-            /  '{{!' (!close .)* close
+   comment <-  '{{!--' {(!('--' close) .)* } '--' close
+            /  '{{!' { (!close .)* } close
 
 
    content <- {:content: (!open .)+ :}
@@ -102,8 +102,10 @@ local comp = re.compile([[
 
 local sample = [[
 <a>some content</a>
-{{! comment text }}
-{{!-- another comment }} --}}
+{{! comment
+text }}
+{{!-- another comment
+ lul }} --}}
 {{>person foo bar person=.}}
 {{#> childEntry}}
 {{/childEntry}}

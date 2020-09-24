@@ -69,7 +69,11 @@ function _CODE:get_code()
 end
 
 function _CODE:gen_comment(token)
-	-- print(format("[COMMENT]:%s", token.value))
+	for str in string.gmatch(token.value, "[^\n]*") do
+		if str ~= nil and string.len(str) > 0 then
+			self:emit("--%s\n", str)
+		end
+	end
 end
 
 function _CODE:gen_content(token)
