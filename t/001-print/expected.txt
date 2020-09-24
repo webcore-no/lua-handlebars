@@ -1,1 +1,2 @@
 <a>This does not containt any templating</a>
+<a>another one</a>
