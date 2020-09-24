@@ -3,7 +3,7 @@ type: docker
 name: default
 
 steps:
-  - name: greeting
+  - name: test
     image: nickblah/luajit:luarocks-alpine
     commands:
       - apk add --no-cache make gcc musl-dev
