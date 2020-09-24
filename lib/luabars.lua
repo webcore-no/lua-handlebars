@@ -1,12 +1,9 @@
 local re = require("relabel")
 local format = string.format
+local util = require("lib.luabars.util")
+local err_printf = util.err_printf
 
 local code = require("lib.luabars.code")
-
-local err_printf = function(...)
-	io.stderr:write(format(...))
-	io.stderr:write('\n')
-end
 
 local _M = {}
 local terror = {eof = "expected end of file"}
@@ -134,20 +131,30 @@ local function mymatch(g, s)
 	return r
 end
 function _M.from_file(path)
-	err_printf(path)
-	-- local r, e, pos = comp:match(sample)
-	local ast, err = mymatch(comp, sample)
+	local file, ast, err, c
+	file, err = io.open(path, 'r+')
+	if not file then
+		err_printf(err)
+		return
+	end
+	data, err = file:read('*all')
+	if not data then
+		err_printf(err)
+		return
+	end
+	-- Remove trailing whitespace added by lua
+	data = data:sub(1, -2)
+	ast, err = mymatch(comp, data)
 	if not ast then
-		local path = "/home/odin/somefile.hb"
 		err_printf("%s:%s", path, err)
 		return
 	end
-	local code, err = code.ast_to_code(ast)
-	if not code then
+	c, err = code.ast_to_code(ast)
+	if not c then
 		err_printf("[ERROR] %s", err)
 		return
 	end
-	err_printf('\n\n%s', code)
+	return loadstring(c)
 end
 return _M
 

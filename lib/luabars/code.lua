@@ -1,6 +1,10 @@
+local util = require("lib.luabars.util")
+local err_printf = util.err_printf
+
 local format = string.format
 local concat = table.concat
 local str_rep = string.rep
+
 local _CODE = {}
 local _M = {}
 local _MT = {__index = _CODE}
@@ -76,7 +80,7 @@ function _CODE:gen_comment(token)
 end
 
 function _CODE:gen_content(token)
-	self:emit("print(%q)", token.value)
+	self:emit("io.stdout:write(%q)", token.value)
 end
 function _CODE:generate_code(token)
 	if token.children then
@@ -87,7 +91,7 @@ function _CODE:generate_code(token)
 	if self["gen_" .. token.type] then
 		return self["gen_" .. token.type](self, token)
 	else
-		print("cant find generator for ", token.type)
+		err_printf("cant find generator for %s", token.type)
 		return true
 	end
 end
@@ -110,7 +114,6 @@ function _M.ast_to_code(tokens, vars, prefix)
 	if not r then
 		return nil, err
 	end
-	ret:emit("if (%s) then", r)
 	return ret:get_code()
 end
 

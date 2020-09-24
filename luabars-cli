@@ -1,6 +1,9 @@
 #!/bin/luajit
 local luabars = require("lib.luabars")
 local helpers = {}
-local template = luabars.from_file(arg[1], helpers)
-
+local template, err = luabars.from_file(arg[1], helpers)
+if not template then
+   print(err)
+   return 1
+end
 print(template())
