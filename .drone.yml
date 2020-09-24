@@ -8,4 +8,5 @@ steps:
     commands:
       - apk add --no-cache make
       - ln -s /usr/local/bin/luajit /bin/luajit
+      - luarocks install lpeglabel
       - make test
