@@ -6,7 +6,7 @@ steps:
   - name: greeting
     image: nickblah/luajit:luarocks-alpine
     commands:
-      - apk add --no-cache make
+      - apk add --no-cache make gcc
       - ln -s /usr/local/bin/luajit /bin/luajit
       - luarocks install lpeglabel
       - make test
