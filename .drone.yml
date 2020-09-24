@@ -6,4 +6,5 @@ steps:
   - name: greeting
     image: nickblah/luajit
     commands:
+      - apk add --no-cache make
       - make test
