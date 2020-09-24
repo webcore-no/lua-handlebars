@@ -4,7 +4,7 @@ name: default
 
 steps:
   - name: greeting
-    image: nickblah/luajit:alpine
+    image: nickblah/luajit:luarocks-alpine
     commands:
       - apk add --no-cache make
       - ln -s /usr/local/bin/luajit /bin/luajit
