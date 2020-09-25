@@ -79,6 +79,12 @@ function _CODE:gen_comment(token)
 	end
 end
 
+function _CODE:gen_mustache(token)
+	if token.value.helper and token.value.helper.type == 'path' then
+		self:emit("io.stdout:write(tostring(data.%s))", token.value.helper.value)
+	end
+end
+
 function _CODE:gen_content(token)
 	self:emit("io.stdout:write(%q)", token.value)
 end
@@ -110,7 +116,10 @@ function _M.ast_to_code(tokens, vars, prefix)
 		prefix = prefix,
 	}
 	setmetatable(ret, _MT)
+
+	ret:scope_up("return function(data)")
 	local r, err = ret:generate_code(tokens)
+	ret:scope_down("end")
 	if not r then
 		return nil, err
 	end

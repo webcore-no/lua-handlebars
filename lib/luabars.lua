@@ -37,7 +37,7 @@ local comp = re.compile([[
 
    block <- {| openBlock {:childern: {| program |} :} |} inverseChain? closeBlock
          / openInverse program inverseAndProgram? closeBlock
-   mustache <- open helperName param* hash? close
+   mustache <- open space* {| {:helper: helperName :} {:params: {| param*|} :} hash? |} space* close
 
    openInverse <- open '^' helperName param* hash? blockParams? close
    inverseChain <- openInverseChain program inverseChain?
@@ -52,13 +52,13 @@ local comp = re.compile([[
    partialName <- {| {:type: ''->'helperName':}{:value: helperName :} |}
                / {| {:type: '' -> 'sexpr':} {:value: sexpr :} |}
 
-   helperName <- path
-               / dataName
-               / string
-               / number
-               / boolean
-               / undefined
-               / null
+   helperName <- {| {:type: '' -> 'path' :} {:value: path :} |}
+               / {| {:type: '' -> 'dataName' :} {:value: dataName :} |}
+               / {| {:type: '' -> 'string' :} {:value: string :} |}
+               / {| {:type: '' -> 'number' :} {:value: number :} |}
+               / {| {:type: '' -> 'boolean' :} {:value: boolean :} |}
+               / {| {:type: '' -> 'undefined' :} {:value: undefined :} |}
+               / {| {:type: '' -> 'null' :} {:value: null :} |}
 
    openBlock <- open '#' '*'? space* {:name: helperName :} space* {:children: {| (!hash param space*)* |}:} hash? space* blockParams? space* close
    closeBlock <- open '/' helperName close
@@ -154,7 +154,7 @@ function _M.from_file(path)
 		err_printf("[ERROR] %s", err)
 		return
 	end
-	return loadstring(c)
+	return loadstring(c)()
 end
 return _M
 
