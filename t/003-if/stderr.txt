@@ -1,0 +1,21 @@
+tokens:
+
+{"type":"root","value":{"children":[{"type":"block","children":[{"type":"content","value":"<a>foo<\/a>\n"}],"name":{"type":"path","value":"if"},"params":[{"type":"helperName","value":{"type":"path","value":"isFoo"}}]},{"1":{"type":"path","value":"else"},"type":"inverse_chain","children":[{"type":"content","value":"<a>bar<\/a>\n"}]},{"type":"end"},{"type":"block","children":[{"type":"content","value":"<div>bar<\/div>\n"}],"name":{"type":"path","value":"if"},"params":[{"type":"helperName","value":{"type":"path","value":"isBar"}}]},{"1":{"type":"path","value":"else"},"type":"inverse_chain","children":[{"type":"content","value":"<div>foo<\/div>\n"}]},{"type":"end"}]}}
+
+
+code:
+
+return function(data)
+    if data.isFoo then
+        io.stdout:write("<a>foo</a>\n")
+    else
+        io.stdout:write("<a>bar</a>\n")
+    end
+    if data.isBar then
+        io.stdout:write("<div>bar</div>\n")
+    else
+        io.stdout:write("<div>foo</div>\n")
+    end
+end
+
+

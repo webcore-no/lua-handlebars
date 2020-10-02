@@ -1,3 +1,5 @@
+local cjson = require("cjson.safe")
+
 local util = require("lib.luabars.util")
 local err_printf = util.err_printf
 
@@ -79,30 +81,84 @@ function _CODE:gen_comment(token)
 	end
 end
 
-function _CODE:gen_mustache(token)
-	if token.value.helper and token.value.helper.type == 'path' then
-		self:emit("io.stdout:write(tostring(data.%s))", token.value.helper.value)
+function _CODE:gen_block(token)
+	local val = ""
+	if token.params[1].type == 'helperName' then
+		val = "data." .. token.params[1].value.value
+	end
+	self:scope_up("if %s then", val)
+	if token.children then
+		for i, v in ipairs(token.children) do
+			err = self:generate_code(v)
+			if err then
+				return err
+			end
+		end
 	end
 end
 
-function _CODE:gen_content(token)
-	self:emit("io.stdout:write(%q)", token.value)
-end
-function _CODE:generate_code(token)
+function _CODE:gen_inverse_chain(token)
+	self:scope_else()
 	if token.children then
 		for i, v in ipairs(token.children) do
-			self:generate_code(v)
+			err = self:generate_code(v)
+			if err then
+				return err
+			end
 		end
 	end
+end
+function _CODE:gen_end(token)
+	self:scope_down("end")
+end
+function _CODE:gen_mustache(token)
+	if token.value.helper and token.value.helper.type == 'path' then
+		if self["helper_" .. token.value.helper.value] then
+			err = self["helper_" .. token.value.helper.value](self, token)
+			if err then
+				return err
+			end
+		else
+			self:emit("io.stdout:write(tostring(data.%s))", token.value.helper.value)
+		end
+	end
+end
+function _CODE:gen_root(token)
+	-- Do nothing since root is only a meta construct
+	-- TODO: Add startup logic here
+	self:scope_up('return function(data)')
+	if token.value.children then
+		for i, v in ipairs(token.value.children) do
+			err = self:generate_code(v)
+			if err then
+				return err
+			end
+		end
+	end
+	self:scope_down('end')
+end
+
+function _CODE:gen_content(token)
+	self:emit("io.stdout:write(%s)", util.escape_string(token.value))
+end
+function _CODE:generate_code(token)
+	local err
+	if not token.type then
+		err_printf("Cant find token type for: %s", cjson.encode(token))
+		return
+	end
 	if self["gen_" .. token.type] then
-		return self["gen_" .. token.type](self, token)
+		err = self["gen_" .. token.type](self, token)
+		if err then
+			return err
+		end
 	else
-		err_printf("cant find generator for %s", token.type)
-		return true
+		err_printf("cant find start callback for %s", token.type)
 	end
 end
 
 function _M.ast_to_code(tokens, vars, prefix)
+	err_printf("tokens:\n\n%s\n\n", cjson.encode(tokens))
 	if prefix then
 		prefix = prefix .. "."
 	else
@@ -117,12 +173,13 @@ function _M.ast_to_code(tokens, vars, prefix)
 	}
 	setmetatable(ret, _MT)
 
-	ret:scope_up("return function(data)")
-	local r, err = ret:generate_code(tokens)
-	ret:scope_down("end")
-	if not r then
+	local err = ret:generate_code(tokens)
+
+	if err then
 		return nil, err
 	end
+
+	err_printf("code:\n\n%s\n\n", ret:get_code())
 	return ret:get_code()
 end
 

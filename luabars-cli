@@ -1,10 +1,12 @@
 #!/bin/luajit
 local luabars = require("lib.luabars")
 local cjson = require("cjson.safe")
+local err_printf = require("lib.luabars.util").err_printf
 local helpers = {}
 local template, err = luabars.from_file(arg[1], helpers)
+
 if not template then
-   print(err)
+   err_printf("%s", err)
    return 1
 end
 
@@ -13,11 +15,13 @@ if not file then
 	err_printf(err)
 	return
 end
+
 data, err = file:read('*all')
 if not data then
 	err_printf(err)
 	return
 end
+
 data, err = cjson.decode(data)
 if not data then
    err_printf(err)
