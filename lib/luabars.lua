@@ -40,7 +40,7 @@ function _M.from_file(path)
 		err_printf("%s:%s", path, err)
 		return
 	end
-	c, err = code.ast_to_code(ast)
+	c, err = code.ast_to_code(ast, helpers, inline_helpers)
 	if not c then
 		err_printf("[ERROR] %s", err)
 		return

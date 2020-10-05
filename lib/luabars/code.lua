@@ -92,10 +92,10 @@ function _CODE:define(def)
 end
 
 function _CODE:helper(name, data)
-	if self.inline_helper[name] then
-		return self.inline_helper[name](data)
+	if self.inline_helpers[name] then
+		return self.inline_helpers[name](self, data)
 	end
-	if self.helper[name] then
+	if self.helpers[name] then
 		local fn = self:define('helper.%s', name)
 		local args, err = self:unwrap_args(data)
 		if not args then
@@ -115,18 +115,9 @@ function _CODE:gen_comment(token)
 end
 
 function _CODE:gen_block(token)
-
-	if token.params[1].type == 'path' then
-		val = "data." .. token.params[1].value
-	end
-	self:scope_up("if %s then", val)
-	if token.children then
-		for i, v in ipairs(token.children) do
-			err = self:generate_code(v)
-			if err then
-				return err
-			end
-		end
+	local o, err = self:helper(token.name.value, token)
+	if not o then
+		return err
 	end
 end
 function _CODE:resolve_param(param)
@@ -177,7 +168,6 @@ function _CODE:gen_root(token)
 end
 
 function _CODE:gen_content(token)
-
 	local w = self:define('function(...)io.stdout:write(...)end')
 	self:emit("%s(%s)", w, util.escape_string(token.value))
 end
@@ -197,19 +187,13 @@ function _CODE:generate_code(token)
 	end
 end
 
-function _M.ast_to_code(tokens, vars, prefix)
+function _M.ast_to_code(tokens, helpers, inline_helpers)
 	err_printf("tokens:\n\n%s\n\n", cjson.encode(tokens))
-	if prefix then
-		prefix = prefix .. "."
-	else
-		prefix = ""
-	end
 	local ret = {
+		helpers = helpers or {},
+		inline_helpers = inline_helpers or {},
 		code = {},
 		depth = 0,
-		varcount = 0,
-		variabels = vars,
-		prefix = prefix,
 		defines = {},
 	}
 	setmetatable(ret, _MT)
