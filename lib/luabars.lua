@@ -5,8 +5,21 @@ local err_printf = util.err_printf
 
 local parser = require("lib.luabars.parser")
 local code = require("lib.luabars.code")
+local base_helpers = require("lib.luabars.helpers")
+local inline_helpers = require("lib.luabars.inline_helpers")
 
-local _M = {}
+local _M = {
+	helpers = helpers,
+	inline_helpers = inline_helpers
+}
+
+function _M:register_helper(key, value)
+	self.helpers[key] = value
+end
+function _M:register_inline_helper(key, value)
+	self.inline_helpers[key] = value
+end
+
 
 function _M.from_file(path)
 	local file, ast, err, c, f

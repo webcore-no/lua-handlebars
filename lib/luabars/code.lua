@@ -5,11 +5,13 @@ local err_printf = util.err_printf
 
 local format = string.format
 local concat = table.concat
+--local unpack = table.unpack
 local str_rep = string.rep
 
 local _CODE = {}
 local _M = {}
 local _MT = {__index = _CODE}
+
 
 function _CODE:emit(fmt, ...)
 	if type(fmt) == "function" then
@@ -59,8 +61,8 @@ function _CODE:resovle()
 			local new_code = {}
 			self.code = new_code
 			self.depth = v[1]
-			v[2](table.unpack(v, 3))
-			self:_resovle()
+			v[2](unpack(v, 3))
+			self:resovle()
 			old_code[i] = concat(new_code, "\n")
 		end
 	end
@@ -73,6 +75,37 @@ function _CODE:get_code()
 	return concat(self.code, '\n')
 end
 
+function _CODE:gen_defines()
+	for k, v in ipairs(self.defines) do
+		self:emit('local d%d = %s', k, v)
+	end
+end
+
+function _CODE:define(def)
+	for k, v in ipairs(self.defines) do
+		if v == def then
+			return format('d%d', k)
+		end
+	end
+	self.defines[#self.defines + 1] = def
+	return format('d%d', #self.defines)
+end
+
+function _CODE:helper(name, data)
+	if self.inline_helper[name] then
+		return self.inline_helper[name](data)
+	end
+	if self.helper[name] then
+		local fn = self:define('helper.%s', name)
+		local args, err = self:unwrap_args(data)
+		if not args then
+			return nil, err
+		end
+		return format('%s(%s)', fn, args)
+	end
+	return nil, format("helper %q does not exist", name)
+end
+
 function _CODE:gen_comment(token)
 	for str in string.gmatch(token.value, "[^\n]*") do
 		if str ~= nil and string.len(str) > 0 then
@@ -82,9 +115,9 @@ function _CODE:gen_comment(token)
 end
 
 function _CODE:gen_block(token)
-	local val = ""
-	if token.params[1].type == 'helperName' then
-		val = "data." .. token.params[1].value.value
+
+	if token.params[1].type == 'path' then
+		val = "data." .. token.params[1].value
 	end
 	self:scope_up("if %s then", val)
 	if token.children then
@@ -96,37 +129,42 @@ function _CODE:gen_block(token)
 		end
 	end
 end
-
-function _CODE:gen_inverse_chain(token)
-	self:scope_else()
-	if token.children then
-		for i, v in ipairs(token.children) do
-			err = self:generate_code(v)
-			if err then
-				return err
-			end
+function _CODE:resolve_param(param)
+	if param.type == 'path' then
+		return format('self.%s', param.value)
+	elseif param.type == 'string' then
+		return format('%s', util.escape_string(param.value))
+	elseif param.type == 'boolean' then
+		if param.value then
+			return '"true"'
+		else
+			return '"false"'
 		end
+	elseif param.type == 'number' then
+		return format('%q', tostring(param.value))
+	elseif param.type == 'undefined' then
+		return '"undefined"'
+	else
+		return nil, format('unsupported type %q', param.type)
 	end
 end
-function _CODE:gen_end(token)
-	self:scope_down("end")
-end
+
 function _CODE:gen_mustache(token)
-	if token.value.helper and token.value.helper.type == 'path' then
-		if self["helper_" .. token.value.helper.value] then
-			err = self["helper_" .. token.value.helper.value](self, token)
-			if err then
-				return err
-			end
-		else
-			self:emit("io.stdout:write(tostring(data.%s))", token.value.helper.value)
+	if #token.params ~= 0 then
+		-- We have params
+	else
+		local res, err = self:resolve_param(token.helper)
+		if not res then
+			return err
 		end
+		local w = self:define('function(...)io.stdout:write(...)end')
+		self:emit('%s(%s)', w, res)
 	end
 end
 function _CODE:gen_root(token)
 	-- Do nothing since root is only a meta construct
 	-- TODO: Add startup logic here
-	self:scope_up('return function(data)')
+	self:scope_up('return function(self)')
 	if token.value.children then
 		for i, v in ipairs(token.value.children) do
 			err = self:generate_code(v)
@@ -139,7 +177,9 @@ function _CODE:gen_root(token)
 end
 
 function _CODE:gen_content(token)
-	self:emit("io.stdout:write(%s)", util.escape_string(token.value))
+
+	local w = self:define('function(...)io.stdout:write(...)end')
+	self:emit("%s(%s)", w, util.escape_string(token.value))
 end
 function _CODE:generate_code(token)
 	local err
@@ -170,9 +210,10 @@ function _M.ast_to_code(tokens, vars, prefix)
 		varcount = 0,
 		variabels = vars,
 		prefix = prefix,
+		defines = {},
 	}
 	setmetatable(ret, _MT)
-
+	ret:emit(ret.gen_defines, ret)
 	local err = ret:generate_code(tokens)
 
 	if err then

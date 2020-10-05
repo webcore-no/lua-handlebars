@@ -19,7 +19,7 @@ local comp = re.compile([[
                / {| {:type: '' -> 'partial' :} {:value: partial :} |}
                / {| {:type: '' -> 'rawBlock':} {:value: rawBlock :} |}
                / {: block :}
-               / {| {:type: '' -> 'mustache' :} {:value:  mustache :} |}
+               / {:  mustache :}
 
    comment <-  '{{!--' {(!('--' close) .)* } '--' close
             /  '{{!' { (!close .)* } close
@@ -37,10 +37,10 @@ local comp = re.compile([[
    openRawBlock <- open open helperName (!hash param)* hash? close close
    endRawBlock <- open open '/' helperName close close
 
-   block <-{| {:type: '' -> 'block':} openBlock {:children: {| (!inverseChain statement)* |} :} |} inverseChain? {| {:type: '' -> 'end' closeBlock :} |}
+   block <-{| {:type: '' -> 'block':} openBlock {:children: {| (!inverseChain statement)* |} :} {:inverse: inverseChain? :} closeBlock |}
          / openInverse program inverseAndProgram? closeBlock
 
-   mustache <- open space* {| {:helper: helperName :} {:params: {| param*|} :} hash? |} space* close
+   mustache <- {| {:type: '' -> 'mustache' :} open space* {:helper: helperName :} space* {:params: {| (!hash {: param :} space*)* |}:} hash? |} space* close
 
    openInverse <- open '^' helperName param* hash? blockParams? close
    inverseChain <- {| {:type: '' -> "inverse_chain" :} openInverseChain {:children: {| (!inverseChain statement)* |} :} |} inverseChain?
@@ -52,16 +52,16 @@ local comp = re.compile([[
 
    openPartialBlock <- open '#>' space* {| {:name: partialName :} space* (!hash param space*)* |} space* hash? space* close
 
-   partialName <- {| {:type: ''->'helperName':}{:value: helperName :} |}
-               / {| {:type: '' -> 'sexpr':} {:value: sexpr :} |}
+   partialName <- helperName
+               / sexpr
 
-   helperName <- {| {:type: '' -> 'path' :} {:value: path :} |}
-               / {| {:type: '' -> 'dataName' :} {:value: dataName :} |}
-               / {| {:type: '' -> 'string' :} {:value: string :} |}
-               / {| {:type: '' -> 'number' :} {:value: number :} |}
-               / {| {:type: '' -> 'boolean' :} {:value: boolean :} |}
+   helperName <- {| {:type: '' -> 'null' :} {:value: null :} |}
                / {| {:type: '' -> 'undefined' :} {:value: undefined :} |}
-               / {| {:type: '' -> 'null' :} {:value: null :} |}
+               / {| {:type: '' -> 'boolean' :} {:value: boolean :} |}
+               / {| {:type: '' -> 'number' :} {:value: number :} |}
+               / {| {:type: '' -> 'string' :} {:value: string :} |}
+               / {| {:type: '' -> 'dataName' :} {:value: dataName :} |}
+               / {| {:type: '' -> 'path' :} {:value: path :} |}
 
    openBlock <- open '#' '*'? space* {:name: helperName :} space* {:params: {| (!hash {: param :} space*)* |}:} hash? space* blockParams? space* close newline?
    closeBlock <- open '/' helperName close newline?
@@ -71,8 +71,8 @@ local comp = re.compile([[
    blockParams <- openBlockParams id closeBlockParams
    openBlockParams <- 'as' [\s]+ '|'
    closeBlockParams <- '|'
-   param <- {| {:type: ''->'helperName':} {:value: helperName :} |}
-         / {| {:type: '' -> 'sexpr':} {:value: sexpr :} |}
+   param <- helperName
+         / sexpr
 
    hash <- {| hashSegment+ |}
 
