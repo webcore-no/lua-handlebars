@@ -39,10 +39,42 @@ local _M = {
 		return ''
 	end,
 }
+function _M:unless(token)
+	if #(token.params) ~= 1 then
+		return nil, "#unless requires exactly one argument"
+	end
+	local cond, err = self:resolve_param(token.params[1])
+	if not cond then
+		return nil, err
+	end
+
+	self:scope_up("if not (%s) then", cond)
+	if token.children then
+		for i, v in ipairs(token.children) do
+			err = self:generate_code(v)
+			if err then
+				return err
+			end
+		end
+	end
+	if token.inverse then
+		self:scope_else()
+		if token.inverse.children then
+			for i, v in ipairs(token.inverse.children) do
+				err = self:generate_code(v)
+				if err then
+					return nil, err
+				end
+			end
+		end
+	end
+	self:scope_down()
+	return ''
+end
 
 function _M:each(token)
 	if #(token.params) ~= 1 then
-		return nil, "#if requires exactly one argument"
+		return nil, "#each requires exactly one argument"
 	end
 	local param, err = self:resolve_param(token.params[1])
 	if not param then
@@ -68,6 +100,29 @@ function _M:each(token)
 				if err then
 					return nil, err
 				end
+			end
+		end
+	end
+	self:scope_down()
+	return ''
+end
+
+
+function _M:with(token)
+	if #(token.params) ~= 1 then
+		return nil, "#with requires exactly one arguments"
+	end
+	local param, err = self:resolve_param(token.params[1])
+	if not param then
+		return nil, err
+	end
+	self:scope_up("do", param)
+	self:emit("local self = %s", param)
+	if token.children then
+		for i, v in ipairs(token.children) do
+			err = self:generate_code(v)
+			if err then
+				return nil, err
 			end
 		end
 	end
