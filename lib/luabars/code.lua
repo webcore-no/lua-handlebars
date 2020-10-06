@@ -122,6 +122,9 @@ function _CODE:gen_block(token)
 end
 function _CODE:resolve_param(param)
 	if param.type == 'path' then
+		if param.value == 'this' then
+			return 'self'
+		end
 		return format('self.%s', param.value)
 	elseif param.type == 'string' then
 		return format('%s', util.escape_string(param.value))
@@ -135,6 +138,8 @@ function _CODE:resolve_param(param)
 		return format('%q', tostring(param.value))
 	elseif param.type == 'undefined' then
 		return '"undefined"'
+	elseif param.type == "dataName" then
+		return param.value
 	else
 		return nil, format('unsupported type %q', param.type)
 	end
