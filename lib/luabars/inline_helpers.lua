@@ -1,4 +1,9 @@
 local util = require("lib.luabars.util")
+local cjson = require("cjson.safe")
+local util = require("lib.luabars.util")
+local err_printf = util.err_printf
+
+
 
 local _M = {
 	['if'] = function(self, token)
@@ -37,7 +42,7 @@ local _M = {
 }
 
 function _M:log(token)
-	local fn = self:define('io.stderr:write')
+	local fn = self:define('function(...)io.stderr:write(...)end')
 	err_printf(cjson.encode(token))
 	self:emit("%s(%s)", fn, util.escape_string(token.params[1].value))
 end

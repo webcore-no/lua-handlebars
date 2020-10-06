@@ -1,3 +1,2 @@
 <a>foo</a>
-<div>foo</div>
-
+<a>bar</a>

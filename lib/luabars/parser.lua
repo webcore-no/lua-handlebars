@@ -40,7 +40,7 @@ local comp = re.compile([[
    block <-{| {:type: '' -> 'block':} openBlock {:children: {| (!inverseChain statement)* |} :} {:inverse: inverseChain? :} closeBlock |}
          / openInverse program inverseAndProgram? closeBlock
 
-   mustache <- {| {:type: '' -> 'mustache' :} open space* {:helper: helperName :} space* {:params: {| (!hash {: param :} space*)* |}:} hash? |} space* close
+   mustache <- {| {:type: '' -> 'mustache' :} open space* {:helper: helperName :} space* {:params: {| (!hash {: param :} space*)* |}:} hash? |} space* close newline?
 
    openInverse <- open '^' helperName param* hash? blockParams? close
    inverseChain <- {| {:type: '' -> "inverse_chain" :} openInverseChain {:children: {| (!inverseChain statement)* |} :} {:inverse: inverseChain? :} |}

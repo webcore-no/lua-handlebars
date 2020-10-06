@@ -143,6 +143,13 @@ end
 function _CODE:gen_mustache(token)
 	if #token.params ~= 0 then
 		-- We have params
+		local m, err = self:helper(token.helper.value, token)
+		if not m then
+			return err
+		end
+		if #m ~= 0 then
+			self:emit('%s', m)
+		end
 	else
 		local res, err = self:resolve_param(token.helper)
 		if not res then
