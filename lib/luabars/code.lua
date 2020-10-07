@@ -228,8 +228,7 @@ end
 function _CODE:gen_root(token)
 	-- Do nothing since root is only a meta construct
 	-- TODO: Add startup logic here
-	self:scope_up('return function(self)')
-	self:emit('local root = self')
+	self:scope_up('return function(root)')
 	self:self_push({{type="path", value="root"}})
 
 	if token.value.children then

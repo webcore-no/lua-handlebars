@@ -127,7 +127,6 @@ function _M:with(token)
 		return nil, err
 	end
 	self:scope_up("do", param)
-	self:emit("local self = %s", param)
 	local path = self:_resolve_path(token.params[1])
 	self:self_push(path)
 	if token.children then
