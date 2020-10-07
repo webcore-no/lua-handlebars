@@ -81,8 +81,13 @@ function _M:each(token)
 		return nil, err
 	end
 	self:emit("local arr = %s or {}", param)
-	self:scope_up("for key, self in pairs(arr) do", param)
-	self:emit("local index = key")
+	self:scope_up("for key, self in pairs(arr) do")
+	self:emit("local index = key", param)
+	
+	local path = self:_resolve_path(token.params[1])
+	path[#path+1] = { type="array", value="key" }
+	self:self_push(path)
+
 	if token.children then
 		for i, v in ipairs(token.children) do
 			err = self:generate_code(v)
@@ -92,6 +97,10 @@ function _M:each(token)
 		end
 	end
 	if token.inverse then
+		self:self_pop()
+		path[#path] = nil
+		err_printf(cjson.encode(path))
+		self:self_push(path)
 		self:scope_down()
 		self:scope_up("if #(arr) and not next(arr) then")
 		if token.inverse.children then
@@ -103,6 +112,7 @@ function _M:each(token)
 			end
 		end
 	end
+	self:self_pop()
 	self:scope_down()
 	return ''
 end
@@ -118,6 +128,8 @@ function _M:with(token)
 	end
 	self:scope_up("do", param)
 	self:emit("local self = %s", param)
+	local path = self:_resolve_path(token.params[1])
+	self:self_push(path)
 	if token.children then
 		for i, v in ipairs(token.children) do
 			err = self:generate_code(v)
@@ -126,6 +138,7 @@ function _M:with(token)
 			end
 		end
 	end
+	self:self_pop()
 	self:scope_down()
 	return ''
 end

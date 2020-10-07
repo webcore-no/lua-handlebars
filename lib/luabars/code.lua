@@ -75,6 +75,16 @@ function _CODE:get_code()
 	return concat(self.code, '\n')
 end
 
+function _CODE:self_push(path)
+	self.self_stack[#self.self_stack+1] = path
+end
+
+function _CODE:self_pop()
+	local s = self.self_stack[#self.self_stack]
+	self.self_stack[#self.self_stack] = nil
+	return s
+end
+
 function _CODE:gen_defines()
 	for k, v in ipairs(self.defines) do
 		self:emit('local d%d = %s', k, v)
@@ -115,17 +125,69 @@ function _CODE:gen_comment(token)
 end
 
 function _CODE:gen_block(token)
-	local o, err = self:helper(token.name.value, token)
+	local name = token.name.value.value[1]
+	local o, err = self:helper(name, token)
 	if not o then
 		return err
 	end
 end
-function _CODE:resolve_param(param)
-	if param.type == 'path' then
-		if param.value == 'this' then
-			return 'self'
+function _CODE:_resolve_path(param)
+	if param.type == 'path' or param.type == 'dataName' then
+		local r_path = {}
+
+		-- If path add existing path
+		if param.type == 'path' then
+			if param.value.value[1] == 'this' then
+				param.value.value[1] = nil
+			end
+
+			-- Fill with exsisting stack
+			for k, v in ipairs(self.self_stack[#self.self_stack]) do
+				r_path[#r_path+1] = v
+			end
 		end
-		return format('self.%s', param.value)
+
+		for k, v in ipairs(param.value.value) do
+			if v == '..' then
+				if #r_path <= 1 then
+					return nil, format("Invalid path")
+				end
+				r_path[#r_path] = nil
+			else
+				r_path[#r_path+1] = { type="path", value=v }
+			end
+		end
+		return r_path
+	end
+	return nil, format('unsupported type %q', param.type)
+end
+
+local path_to_string = function(path)
+	local str = ""
+	for k, v in ipairs(path) do
+		if v.type == "path" then
+			if str == "" then
+				str = v.value
+			else
+				str = format("%s.%s", str, v.value)
+			end
+		elseif v.type == "array" then
+			str = format("%s[%s]", str, v.value)
+		else
+			err_printf(cjson.encode(path))
+			return nil, format("unsupported segement %q", v.type)
+		end
+	end
+	return str
+end
+
+function _CODE:resolve_param(param)
+	if param.type == 'path' or param.type == "dataName" then
+		local resolved_path, err = self:_resolve_path(param)
+		if not resolved_path then
+			return nil, err
+		end
+		return path_to_string(resolved_path)
 	elseif param.type == 'string' then
 		return format('%s', util.escape_string(param.value))
 	elseif param.type == 'boolean' then
@@ -138,8 +200,6 @@ function _CODE:resolve_param(param)
 		return format('%q', tostring(param.value))
 	elseif param.type == 'undefined' then
 		return '"undefined"'
-	elseif param.type == "dataName" then
-		return param.value
 	else
 		return nil, format('unsupported type %q', param.type)
 	end
@@ -148,7 +208,8 @@ end
 function _CODE:gen_mustache(token)
 	if #token.params ~= 0 then
 		-- We have params
-		local m, err = self:helper(token.helper.value, token)
+		local name = token.helper.value.value[1]
+		local m, err = self:helper(name, token)
 		if not m then
 			return err
 		end
@@ -168,6 +229,9 @@ function _CODE:gen_root(token)
 	-- Do nothing since root is only a meta construct
 	-- TODO: Add startup logic here
 	self:scope_up('return function(self)')
+	self:emit('local root = self')
+	self:self_push({{type="path", value="root"}})
+
 	if token.value.children then
 		for i, v in ipairs(token.value.children) do
 			err = self:generate_code(v)
@@ -176,6 +240,8 @@ function _CODE:gen_root(token)
 			end
 		end
 	end
+
+	self:self_pop()
 	self:scope_down('end')
 end
 
@@ -207,6 +273,7 @@ function _M.ast_to_code(tokens, helpers, inline_helpers)
 		code = {},
 		depth = 0,
 		defines = {},
+		self_stack = {},
 	}
 	setmetatable(ret, _MT)
 	ret:emit(ret.gen_defines, ret)

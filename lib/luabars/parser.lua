@@ -81,9 +81,9 @@ local comp = re.compile([[
    dataName <- data {: pathSegments :}
 
    path <- pathSegments
-   pathSegments <- id (sep id)*
-                / (id / '.' / '..') ( '/' (id / '.' / '..'))*
-
+   pathSegments <- {| {:type: '' -> 'url' :}{:value: {| segmentPart ( '/' (segmentPart))* |} :} |}
+                   /{| {:type: '' -> 'dot':} {:value: {| {: id :} (sep {: id :})* |} :} |}
+   segmentPart <- {: '..' / '.' / id :}
    data <- '@'
    id <- (![=~}%s/.)|] .)+
    string <- '"'('\"' / [^"])*'"'

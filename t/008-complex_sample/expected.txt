@@ -1,0 +1,6 @@
+<html>
+	<body>
+		<h1>Hello, foobar</h1>
+		<a>Hope you have a nice day</a>
+	</body>
+</html>
