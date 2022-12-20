@@ -1,4 +1,3 @@
-local re = require("relabel")
 local format = string.format
 local util = require("lib.luabars.util")
 local err_printf = util.err_printf

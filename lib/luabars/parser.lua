@@ -1,17 +1,15 @@
-local re = require("relabel")
+local re = require("re")
 local format = string.format
 local util = require("lib.luabars.util")
-local err_printf = util.err_printf
 
 
 local _M = {}
 local _AST = {}
 
 
-local terror = {eof = "expected end of file"}
 
 local comp = re.compile([[
-   root <-  {|{:type: '' -> 'root':} {:value: {| {:children: program :} |} :} |} (!. / %{eof})
+   root <-  {|{:type: '' -> 'root':} {:value: {| {:children: program :} |} :} |} (!.)
    program <- {| statement* |}
    statement <- {| {:type: '' -> 'comment' :} {:value: comment :} |}
                / {| {:type: '' -> 'content' :} {:value: content :} |}
@@ -98,14 +96,12 @@ local comp = re.compile([[
    open <- '{{'
    space <- [%s]
    newline <- [%nl]
-]], terror)
+]])
 
 function _M.parse(s)
 	local r, e, pos = comp:match(s)
 	if not r then
-		local line, col = re.calcline(s, pos)
-		-- local msg = "Error at line " .. line .. " (col " .. col .. "): "
-		return r, format('%d col:%d %s', line, col, terror[e])
+		return r, format('error %s %s', e, pos)
 	end
 	return r
 end
