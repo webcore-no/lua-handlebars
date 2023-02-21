@@ -1,25 +1,26 @@
-local format = string.format
 local util = require("lib.luabars.util")
-local err_printf = util.err_printf
-
 local parser = require("lib.luabars.parser")
 local code = require("lib.luabars.code")
 local base_helpers = require("lib.luabars.helpers")
 local inline_helpers = require("lib.luabars.inline_helpers")
+local optimizer = require("lib.luabars.optimizer")
 
-local _M = {
-	helpers = helpers,
-	inline_helpers = inline_helpers
-}
+local err_printf = util.err_printf
+local shallow_copy = util.shallow_copy
 
-function _M:register_helper(key, value)
+local _T = {}
+
+local bars_mt = {}
+local bars = { __index = bars_mt }
+
+function bars_mt:register_helper(key, value)
 	self.helpers[key] = value
 end
-function _M:register_inline_helper(key, value)
+function bars_mt:register_inline_helper(key, value)
 	self.inline_helpers[key] = value
 end
 
-function _M.from_string(data)
+function bars_mt:from_string(data)
 	local ast, err, c, f
 	-- Remove trailing whitespace added by lua
 	ast, err = parser.parse(data)
@@ -27,7 +28,9 @@ function _M.from_string(data)
 		err_printf("%s:%s", path, err)
 		return
 	end
-	c, err = code.ast_to_code(ast, helpers, inline_helpers)
+	optimizer.optimize(ast)
+
+	c, err = code.ast_to_code(ast, self.base_helpers, self.inline_helpers)
 	if not c then
 		err_printf("[ERROR] %s", err)
 		return
@@ -40,8 +43,8 @@ function _M.from_string(data)
 	return f()
 end
 
-function _M.from_file(path)
-	local file, ast, err, c, f
+function bars_mt:from_file(path)
+	local file, data, ast, err, c, f
 	file, err = io.open(path, 'r+')
 	if not file then
 		err_printf(err)
@@ -59,7 +62,9 @@ function _M.from_file(path)
 		err_printf("%s:%s", path, err)
 		return
 	end
-	c, err = code.ast_to_code(ast, helpers, inline_helpers)
+	optimizer.optimize(ast)
+
+	c, err = code.ast_to_code(ast, self.base_helpers, self.inline_helpers)
 	if not c then
 		err_printf("[ERROR] %s", err)
 		return
@@ -71,5 +76,14 @@ function _M.from_file(path)
 	end
 	return f()
 end
-return _M
 
+function _T.new()
+	local t = {
+		helpers = shallow_copy(base_helpers),
+		inline_helpers = shallow_copy(inline_helpers)
+	}
+	setmetatable(t, bars)
+	return t
+end
+
+return _T

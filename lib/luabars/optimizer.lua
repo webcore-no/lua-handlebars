@@ -1,14 +1,10 @@
-local optimizers = {}
-local _M = {optimizers = optimizers}
+local _M = {}
 
 -- Nearest neighbur print
-optimizers.name = "Print merge"
-optimizers.description = "Merges print statements that are after eachother"
-optimizers.cost = 1
-local print_merge = function(ast)
-	for i, v in ipairs(ast.children) do
+local function print_merge(ast)
+	for i, v in ipairs(ast) do
 		if v.type == "print" then
-			if ast.children[i+1].type = "print" then
+			if ast.children[i+1].type == "print" then
 				v.value = v.value + ast.children
 			end
 		end
@@ -16,12 +12,19 @@ local print_merge = function(ast)
 	end
 	return true
 end
+local optimizers = {
+	{
+		name = "Print merge",
+		description = "Merges print statements that are after eachother",
+		cost = 1,
+		func = print_merge
+	}
+}
 
-optimizers.func = print_merge
 
 function _M.optimize(ast)
-	for k, v in pairs(optimizers) do
-
+	for _, v in pairs(optimizers) do
+		v.func(ast)
 	end
 end
 

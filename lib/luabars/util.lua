@@ -1,5 +1,4 @@
 local format = string.format
-
 local _M = {}
 
 function _M.err_printf(...)
@@ -20,5 +19,17 @@ function _M.escape_string(str)
 
 	return format([["%s"]], str)
 end
+
+function _M.shallow_copy(tbl)
+	local t = {}
+	for i, v in ipairs(tbl) do
+		t[i] = v
+	end
+	for k, v in pairs(tbl) do
+		t[k] = v
+	end
+	return t
+end
+
 return _M
 

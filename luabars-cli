@@ -1,14 +1,18 @@
 #!/bin/luajit
+
 local luabars = require("lib.luabars")
 local cjson = require("cjson.safe")
 local err_printf = require("lib.luabars.util").err_printf
-local helpers = {}
-local template, err = luabars.from_file(arg[1], helpers)
+local luabarsc = luabars.new()
+
+local template, err = luabarsc:from_file(arg[1])
 
 if not template then
    err_printf("%s", err)
    return 1
 end
+
+local file, data
 
 file, err = io.open(arg[2], 'r+')
 if not file then

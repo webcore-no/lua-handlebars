@@ -107,7 +107,7 @@ function _CODE:helper(name, data)
 		return self.inline_helpers[name](self, data)
 	end
 	if self.helpers[name] then
-		local fn = self:define('helper.%s', name)
+		local fn = self:define(format('helper.%s', name))
 		local args, err = self:unwrap_args(data)
 		if not args then
 			return nil, err
@@ -143,12 +143,12 @@ function _CODE:_resolve_path(param)
 			end
 
 			-- Fill with exsisting stack
-			for k, v in ipairs(self.self_stack[#self.self_stack]) do
+			for _, v in ipairs(self.self_stack[#self.self_stack]) do
 				r_path[#r_path+1] = v
 			end
 		end
 
-		for k, v in ipairs(param.value.value) do
+		for _, v in ipairs(param.value.value) do
 			if v == '..' then
 				if #r_path <= 1 then
 					return nil, format("Invalid path")
@@ -165,7 +165,7 @@ end
 
 local path_to_string = function(path)
 	local str = ""
-	for k, v in ipairs(path) do
+	for _, v in ipairs(path) do
 		if v.type == "path" then
 			if str == "" then
 				str = v.value
@@ -232,21 +232,21 @@ function _CODE:gen_root(token)
 	self:scope_up('return function(root)')
 	self:self_push({{type="path", value="root"}})
 
-	local concat = self:define("table.concat")
+	local t_concat = self:define("table.concat")
 	self:emit("local out = {}")
 
 	if token.value.children then
-		for i, v in ipairs(token.value.children) do
-			err = self:generate_code(v)
+		for _, v in ipairs(token.value.children) do
+			local err = self:generate_code(v)
 			if err then
 				return err
 			end
 		end
 	end
 
-	self:emit("return %s(out)", concat)
+	self:emit("return %s(out)", t_concat)
 	self:self_pop()
-	self:scope_down('end')
+	self:scope_down()
 end
 
 function _CODE:gen_content(token)

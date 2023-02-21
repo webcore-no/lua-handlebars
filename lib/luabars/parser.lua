@@ -1,11 +1,8 @@
 local re = require("re")
 local format = string.format
-local util = require("lib.luabars.util")
 
 
 local _M = {}
-local _AST = {}
-
 
 
 local comp = re.compile([[

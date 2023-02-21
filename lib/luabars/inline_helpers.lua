@@ -1,9 +1,6 @@
 local util = require("lib.luabars.util")
 local cjson = require("cjson.safe")
-local util = require("lib.luabars.util")
 local err_printf = util.err_printf
-
-
 
 local _M = {
 	['if'] = function(self, token)
@@ -17,7 +14,7 @@ local _M = {
 
 		self:scope_up("if %s then", cond)
 		if token.children then
-			for i, v in ipairs(token.children) do
+			for _, v in ipairs(token.children) do
 				err = self:generate_code(v)
 				if err then
 					return err
@@ -27,7 +24,7 @@ local _M = {
 		if token.inverse then
 			self:scope_else()
 			if token.inverse.children then
-				for i, v in ipairs(token.inverse.children) do
+				for _, v in ipairs(token.inverse.children) do
 					err = self:generate_code(v)
 					if err then
 						return nil, err
@@ -60,7 +57,7 @@ function _M:unless(token)
 	if token.inverse then
 		self:scope_else()
 		if token.inverse.children then
-			for i, v in ipairs(token.inverse.children) do
+			for _, v in ipairs(token.inverse.children) do
 				err = self:generate_code(v)
 				if err then
 					return nil, err
@@ -83,7 +80,7 @@ function _M:each(token)
 	self:emit("local arr = %s or {}", param)
 	self:scope_up("for key, self in pairs(arr) do")
 	self:emit("local index = key", param)
-	
+
 	local path = self:_resolve_path(token.params[1])
 	path[#path+1] = { type="array", value="key" }
 	self:self_push(path)
@@ -104,7 +101,7 @@ function _M:each(token)
 		self:scope_down()
 		self:scope_up("if #(arr) and not next(arr) then")
 		if token.inverse.children then
-			for i, v in ipairs(token.inverse.children) do
+			for _, v in ipairs(token.inverse.children) do
 				err = self:generate_code(v)
 				if err then
 					return nil, err
@@ -130,7 +127,7 @@ function _M:with(token)
 	local path = self:_resolve_path(token.params[1])
 	self:self_push(path)
 	if token.children then
-		for i, v in ipairs(token.children) do
+		for _, v in ipairs(token.children) do
 			err = self:generate_code(v)
 			if err then
 				return nil, err
