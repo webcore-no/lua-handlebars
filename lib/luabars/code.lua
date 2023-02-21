@@ -12,6 +12,7 @@ local _CODE = {}
 local _M = {}
 local _MT = {__index = _CODE}
 
+local print_func = "function(table, text)table[#table+1] = text end"
 
 function _CODE:emit(fmt, ...)
 	if type(fmt) == "function" then
@@ -221,8 +222,8 @@ function _CODE:gen_mustache(token)
 		if not res then
 			return err
 		end
-		local w = self:define('function(...)io.stdout:write(...)end')
-		self:emit('%s(%s)', w, res)
+		local w = self:define(print_func)
+		self:emit('%s(out, %s)', w, res)
 	end
 end
 function _CODE:gen_root(token)
@@ -230,6 +231,9 @@ function _CODE:gen_root(token)
 	-- TODO: Add startup logic here
 	self:scope_up('return function(root)')
 	self:self_push({{type="path", value="root"}})
+
+	local concat = self:define("table.concat")
+	self:emit("local out = {}")
 
 	if token.value.children then
 		for i, v in ipairs(token.value.children) do
@@ -240,13 +244,14 @@ function _CODE:gen_root(token)
 		end
 	end
 
+	self:emit("return %s(out)", concat)
 	self:self_pop()
 	self:scope_down('end')
 end
 
 function _CODE:gen_content(token)
-	local w = self:define('function(...)io.stdout:write(...)end')
-	self:emit("%s(%s)", w, util.escape_string(token.value))
+	local w = self:define(print_func)
+	self:emit("%s(out, %s)", w, util.escape_string(token.value))
 end
 function _CODE:generate_code(token)
 	local err

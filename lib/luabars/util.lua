@@ -10,7 +10,6 @@ end
 function _M.escape_string(str)
 	local quote = '"'
 
-
 	str = str:gsub("\\", [[\\]])
 	str = str:gsub("\n", [[\n]])
 	str = str:gsub("\b", [[\b]])

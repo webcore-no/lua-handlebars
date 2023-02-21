@@ -19,6 +19,26 @@ function _M:register_inline_helper(key, value)
 	self.inline_helpers[key] = value
 end
 
+function _M.from_string(data)
+	local ast, err, c, f
+	-- Remove trailing whitespace added by lua
+	ast, err = parser.parse(data)
+	if not ast then
+		err_printf("%s:%s", path, err)
+		return
+	end
+	c, err = code.ast_to_code(ast, helpers, inline_helpers)
+	if not c then
+		err_printf("[ERROR] %s", err)
+		return
+	end
+	f, err = loadstring(c)
+	if not f then
+		err_printf("[ERROR] %s", err)
+		return
+	end
+	return f()
+end
 
 function _M.from_file(path)
 	local file, ast, err, c, f
