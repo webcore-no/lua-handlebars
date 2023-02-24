@@ -102,17 +102,29 @@ function _CODE:define(def)
 	return format('d%d', #self.defines)
 end
 
+function _CODE:unwrap_params(args)
+	local ret = ""
+	for _, v in ipairs(args) do
+		if ret == "" then
+			ret = self:resolve_param(v)
+		else
+			ret = ret .. ", " .. self:resolve_param(v)
+		end
+	end
+	return ret
+end
+
 function _CODE:helper(name, data)
 	if self.inline_helpers[name] then
 		return self.inline_helpers[name](self, data)
 	end
 	if self.helpers[name] then
-		local fn = self:define(format('helper.%s', name))
-		local args, err = self:unwrap_args(data)
+		local fn = self:define(format('helpers.%s', name))
+		local args, err = self:unwrap_params(data.params)
 		if not args then
 			return nil, err
 		end
-		return format('%s(%s)', fn, args)
+		return format('%s(out, %s(%s))',self:define(print_func), fn, args)
 	end
 	return nil, format("helper %q does not exist", name)
 end
@@ -193,6 +205,30 @@ function _CODE:resolve_param(param)
 		return format('%s', util.escape_string(param.value))
 	elseif param.type == 'boolean' then
 		if param.value then
+			return 'true'
+		else
+			return 'false'
+		end
+	elseif param.type == 'number' then
+		return format('%s', tostring(param.value))
+	elseif param.type == 'undefined' then
+		return '"undefined"'
+	else
+		return nil, format('unsupported type %q', param.type)
+	end
+end
+
+function _CODE:printable_param(param)
+	if param.type == 'path' or param.type == "dataName" then
+		local resolved_path, err = self:_resolve_path(param)
+		if not resolved_path then
+			return nil, err
+		end
+		return path_to_string(resolved_path)
+	elseif param.type == 'string' then
+		return format('%s', util.escape_string(param.value))
+	elseif param.type == 'boolean' then
+		if param.value then
 			return '"true"'
 		else
 			return '"false"'
@@ -218,7 +254,7 @@ function _CODE:gen_mustache(token)
 			self:emit('%s', m)
 		end
 	else
-		local res, err = self:resolve_param(token.helper)
+		local res, err = self:printable_param(token.helper)
 		if not res then
 			return err
 		end
@@ -228,7 +264,7 @@ function _CODE:gen_mustache(token)
 end
 function _CODE:gen_root(token)
 	-- Do nothing since root is only a meta construct
-	-- TODO: Add startup logic here
+	-- TODO: Add startup logic hereby
 	self:scope_up('return function(root)')
 	self:self_push({{type="path", value="root"}})
 
@@ -280,9 +316,12 @@ function _M.ast_to_code(tokens, helpers, inline_helpers)
 		self_stack = {},
 	}
 	setmetatable(ret, _MT)
+	-- Helper wrapper
+	ret:scope_up('return function(helpers)')
+	-- Generate defines
 	ret:emit(ret.gen_defines, ret)
 	local err = ret:generate_code(tokens)
-
+	ret:scope_down()
 	if err then
 		return nil, err
 	end

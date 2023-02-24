@@ -1,0 +1,33 @@
+# Lua handlebars
+A handlebars like template library for lua.
+
+## Helper types
+### Helper
+Normal helpers takes a varianity of inputs and outputs a string
+
+## Inline helpers
+Takes a AST token as input and output error
+
+## Block helpers
+
+
+## Builtin helpers
+{{ inline_helpers "
+	local helpers = require("lib/luabars/helpers.lua")
+	local inline_helpers = require("lib/luabars/inline_helpers.lua")
+	return {
+		print_bultin = function()
+			local ret = ""
+			for k,_ in pairs(helpers)
+				ret = k .. '\n'
+			end
+			for k,_ in pairs(inline_helpers)
+				ret = k .. '\n'
+			end
+		end
+	}
+"}}
+{{ print_bultin }}
+
+## Requiremnets
+ - [LPEG](http://www.inf.puc-rio.br/~roberto/lpeg/)

@@ -1,0 +1,15 @@
+# TODO
+ - [X] Write test and fix helpers
+ - [X] Write a cli that supports helper input
+ - [ ] Write a more robust and prettier test framework
+ - [ ] Write luarocks spec
+ - [ ] Write a better README (generate with a input.hbs)
+ - [ ] Write a LICENSE
+ - [ ] Write a CHANGELOG
+ - [ ] Write CI/CD pipelines
+ - [ ] Build docs in pipeline
+ - [ ] Add to some lua awsome lists
+ - [ ] Add block helpers
+ - [ ] "Include" helper that import another hbs file
+ - [ ] Import or define helpers and inline_helpers inside the hbs
+ - [ ] Make a "safe" version that does not expose "include" helpers

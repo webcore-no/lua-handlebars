@@ -1,34 +1,65 @@
 #!/bin/luajit
-
 local luabars = require("lib.luabars")
 local cjson = require("cjson.safe")
 local err_printf = require("lib.luabars.util").err_printf
 local luabarsc = luabars.new()
 
-local template, err = luabarsc:from_file(arg[1])
+
+local function read_file(path)
+   if path == nil then return nil end
+
+   local file, data, err
+   file, err = io.open(path, 'r+')
+   if not file then
+      err_printf(err)
+      return nil
+   end
+
+   data, err = file:read('*all')
+   if not data then
+      err_printf(err)
+      return nil
+   end
+   return data
+end
+
+local arguments = {
+}
+
+for i, v in ipairs(arg) do
+      local m = v:match("[-][-](.*)")
+      if m then
+         arguments[m] = arg[i+1]
+      end
+end
+
+local helpers = read_file(arguments.helpers)
+if helpers then
+   helpers = loadstring(helpers)
+   luabarsc:register_helpers(helpers())
+end
+
+
+local inline_helpers = read_file(arguments.inline_helpers)
+if inline_helpers then
+   inline_helpers = loadstring(inline_helpers)
+   luabarsc:register_inline_helpers(inline_helpers())
+end
+
+local template, err = luabarsc:from_file(arguments.input)
 
 if not template then
    err_printf("%s", err)
    return 1
 end
 
-local file, data
-
-file, err = io.open(arg[2], 'r+')
-if not file then
-	err_printf(err)
-	return
-end
-
-data, err = file:read('*all')
-if not data then
-	err_printf(err)
-	return
-end
-
-data, err = cjson.decode(data)
-if not data then
-   err_printf(err)
-   return
+local data
+data = read_file(arguments.variables)
+if data then
+   data, err = cjson.decode(data)
+   if not data then
+      err_printf(err)
+      return
+   end
 end
 print(template(data))

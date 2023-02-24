@@ -1,0 +1,3 @@
+return {
+	format = string.format
+}

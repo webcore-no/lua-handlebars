@@ -12,6 +12,7 @@ local function print_merge(ast)
 	end
 	return true
 end
+
 local optimizers = {
 	{
 		name = "Print merge",

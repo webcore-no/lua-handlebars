@@ -31,5 +31,21 @@ function _M.shallow_copy(tbl)
 	return t
 end
 
+function _M.read_file(path)
+   if path == nil then return nil, "Path is nil" end
+
+   local file, data, err
+   file, err = io.open(path, 'r+')
+   if not file then
+      return nil, err
+   end
+
+   data, err = file:read('*all')
+   if not data then
+      return nil, err
+   end
+   return data
+end
+
 return _M
 

@@ -81,8 +81,8 @@ local comp = re.compile([[
    segmentPart <- {: '..' / '.' / id :}
    data <- '@'
    id <- (![=~}%s/.)|] .)+
-   string <- '"'('\"' / [^"])*'"'
-           / "'"("\'" / [^'])*"'"
+   string <- '"'{:('\"' / [^"])*:}'"'
+           / "'"{:("\'" / [^'])*:}"'"
    number <- '-'? [0-9]+ ([:.][0-9]+)?
    boolean <- 'true' / 'false'
    undefined <- 'undefined'

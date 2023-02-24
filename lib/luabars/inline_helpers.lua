@@ -47,7 +47,7 @@ function _M:unless(token)
 
 	self:scope_up("if not (%s) then", cond)
 	if token.children then
-		for i, v in ipairs(token.children) do
+		for _, v in ipairs(token.children) do
 			err = self:generate_code(v)
 			if err then
 				return err
@@ -86,7 +86,7 @@ function _M:each(token)
 	self:self_push(path)
 
 	if token.children then
-		for i, v in ipairs(token.children) do
+		for _, v in ipairs(token.children) do
 			err = self:generate_code(v)
 			if err then
 				return nil, err
