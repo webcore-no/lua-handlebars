@@ -25,7 +25,6 @@ function bars_mt:register_helpers(tbl)
 end
 
 function bars_mt:register_inline_helper(key, value)
-	err_printf("Registring %s to inline_helpers", key)
 	self.inline_helpers[key] = value
 end
 
@@ -41,20 +40,17 @@ function bars_mt:from_string(data)
 	-- Remove trailing whitespace added by lua
 	ast, err = parser.parse(data)
 	if not ast then
-		err_printf("%s:%s", path, err)
-		return
+		return nil, err
 	end
 	optimizer.optimize(ast)
 
 	c, err = code.ast_to_code(ast, self.helpers, self.inline_helpers)
 	if not c then
-		err_printf("[ERROR] %s", err)
-		return
+		return nil, err
 	end
 	f, err = loadstring(c)
 	if not f then
-		err_printf("[ERROR] %s", err)
-		return
+		return nil, err
 	end
 	return f()(self.helpers)
 end
@@ -63,13 +59,11 @@ function bars_mt:from_file(path)
 	local file, data, err
 	file, err = io.open(path, 'r+')
 	if not file then
-		err_printf(err)
-		return
+		return nil, err
 	end
 	data, err = file:read('*all')
 	if not data then
-		err_printf(err)
-		return
+		return nil, err
 	end
 	-- Remove trailing whitespace added by lua
 	data = data:sub(1, -2)

@@ -12,22 +12,35 @@ Takes a AST token as input and output error
 
 
 ## Builtin helpers
-{{ inline_helpers "
-	local helpers = require("lib/luabars/helpers.lua")
-	local inline_helpers = require("lib/luabars/inline_helpers.lua")
+{{ helpers "
+	local helpers = require('lib/luabars/helpers')
+	local unsafe_helpers = require('lib/luabars/unsafe_helpers')
+	local inline_helpers = require('lib/luabars/inline_helpers')
+	local unsafe_inline_helpers = require('lib/luabars/unsafe_inline_helpers')
 	return {
 		print_bultin = function()
-			local ret = ""
-			for k,_ in pairs(helpers)
-				ret = k .. '\n'
+			local ret = '## Helpers\n'
+			for k,_ in pairs(helpers) do
+				ret = ret .. ' - ' .. k .. '\n'
 			end
-			for k,_ in pairs(inline_helpers)
-				ret = k .. '\n'
+
+			ret = ret .. '### Unsafe\n'
+			for k,_ in pairs(unsafe_helpers) do
+				ret = ret .. ' - ' .. k .. '\n'
 			end
+			ret = ret .. '### Inline\n'
+			for k,_ in pairs(inline_helpers) do
+				ret = ret .. ' - ' .. k .. '\n'
+			end
+			ret = ret .. '### Inline unsafe\n'
+			for k,_ in pairs(unsafe_inline_helpers) do
+				ret = ret .. ' - ' .. k .. '\n'
+			end
+			return ret
 		end
 	}
 "}}
-{{ print_bultin }}
+{{ print_bultin false }}
 
 ## Requiremnets
  - [LPEG](http://www.inf.puc-rio.br/~roberto/lpeg/)

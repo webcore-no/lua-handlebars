@@ -49,17 +49,21 @@ end
 local template, err = luabarsc:from_file(arguments.input)
 
 if not template then
-   err_printf("%s", err)
+   err_printf("Failed to generate template: %s", err)
    return 1
 end
 
 local data
 data = read_file(arguments.variables)
 if data then
-   data, err = cjson.decode(data)
-   if not data then
-      err_printf(err)
-      return
+   if arguments.variables:match(".*.lua") then
+      data = loadstring(data)()
+   else
+      data, err = cjson.decode(data)
+      if not data then
+         err_printf(err)
+         return
+      end
    end
 end
 print(template(data))

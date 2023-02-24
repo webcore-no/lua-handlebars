@@ -98,7 +98,7 @@ local comp = re.compile([[
 function _M.parse(s)
 	local r, e, pos = comp:match(s)
 	if not r then
-		return r, format('error %s %s', e, pos)
+		return r, format('Failed to parse error %s %s', e, pos)
 	end
 	return r
 end
