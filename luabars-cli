@@ -57,7 +57,13 @@ local data
 data = read_file(arguments.variables)
 if data then
    if arguments.variables:match(".*.lua") then
-      data = loadstring(data)()
+      err_printf(data)
+      data, err = loadstring(data)
+      if err ~= nil then
+         err_printf("error: %s", err)
+         return nil
+      end
+      data = data()
    else
       data, err = cjson.decode(data)
       if not data then

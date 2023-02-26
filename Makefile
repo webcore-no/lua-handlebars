@@ -16,8 +16,8 @@ t/%/output.txt: t/% luabars-cli $(LUA) t/%/expected.txt t/%/input.hbs t/%/variab
 		> $@ 2> $</stderr.txt
 	@ diff $</expected.txt $@
 
-README.md: README.md.hbs
-	./luabars-cli --input $< > $@
+README.md: README.md.hbs README.lua
+	./luabars-cli --input $< --variables README.lua > $@
 
 clean-tests:
 	rm t/*/output.txt

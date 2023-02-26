@@ -12,20 +12,21 @@ Takes a AST token as input and output error
 
 
 ## Builtin helpers
-## Helpers
+
+### unsafe inline helpers
+ - inline helpers file
+ - helpers
+ - helpers file
+ - inline helpers
+### unsafe helpers
+### helpers
  - log
-### Unsafe
-### Inline
+### inline helpers
  - unless
  - each
  - if
  - log
  - with
-### Inline unsafe
- - inline_helpers_file
- - helpers
- - helpers_file
- - inline_helpers
 
 ## Requiremnets
  - [LPEG](http://www.inf.puc-rio.br/~roberto/lpeg/)
