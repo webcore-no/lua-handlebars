@@ -1,16 +1,11 @@
-{{#each a}}
-<a>{{this}}</a>
+{{#each a}}<a>{{this}}</a>
 {{/each}}
 
-{{#each b}}
-<a>{{this}}</a>
-{{else}}
-<a>No b</a>
+{{#each b}}<a>{{this}}</a>
+{{else}}<a>No b</a>
 {{/each}}
 
-{{#each a}}
-<a>{{@key}}</a>
+{{#each a}}<a>{{@key}}</a>
 <a>{{@index}}</a>
-{{else}}
-<a>No b</a>
+{{else}}<a>No b</a>
 {{/each}}

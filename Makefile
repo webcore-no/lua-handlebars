@@ -20,5 +20,5 @@ README.md: README.md.hbs README.lua
 	./luabars-cli --input $< --variables README.lua > $@
 
 clean-tests:
-	rm t/*/output.txt
-	rm t/*/stderr.txt
+	rm -f t/*/output.txt
+	rm -f t/*/stderr.txt
