@@ -5,7 +5,7 @@ TESTS_OUT := $(patsubst %, %/output.txt, $(TESTS))
 
 all: test
 
-test: clean-tests $(TESTS_OUT)
+check: clean-tests $(TESTS_OUT)
 
 t/%/output.txt: t/% luabars-cli $(LUA) t/%/expected.txt t/%/input.hbs t/%/variables.json
 	@ echo $<
