@@ -13,6 +13,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Update apt
+      run: apt update
+
+    - name: Install deps
+      run: apt install --assume-yes luajit lua-socket lua-lpeg
+
     - name: Run check
       run: make check
 
