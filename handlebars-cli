@@ -1,8 +1,8 @@
 #!/bin/luajit
-local luabars = require("lib.luabars")
+local handlebars = require("lib.handlebars")
 local cjson = require("cjson.safe")
-local err_printf = require("lib.luabars.util").err_printf
-local luabarsc = luabars.new()
+local err_printf = require("lib.handlebars.util").err_printf
+local handlebarsc = handlebars.new()
 
 
 local function read_file(path)
@@ -36,17 +36,17 @@ end
 local helpers = read_file(arguments.helpers)
 if helpers then
    helpers = loadstring(helpers)
-   luabarsc:register_helpers(helpers())
+   handlebarsc:register_helpers(helpers())
 end
 
 
 local inline_helpers = read_file(arguments.inline_helpers)
 if inline_helpers then
    inline_helpers = loadstring(inline_helpers)
-   luabarsc:register_inline_helpers(inline_helpers())
+   handlebarsc:register_inline_helpers(inline_helpers())
 end
 
-local template, err = luabarsc:from_file(arguments.input)
+local template, err = handlebarsc:from_file(arguments.input)
 
 if not template then
    err_printf("Failed to generate template: %s", err)

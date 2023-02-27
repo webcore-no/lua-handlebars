@@ -1,4 +1,4 @@
-local util = require("lib.luabars.util")
+local util = require("lib.handlebars.util")
 
 local _M = {}
 

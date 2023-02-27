@@ -7,9 +7,9 @@ all: test
 
 check: clean-tests $(TESTS_OUT)
 
-t/%/output.txt: t/% luabars-cli $(LUA) t/%/expected.txt t/%/input.hbs t/%/variables.json
+t/%/output.txt: t/% handlebars-cli $(LUA) t/%/expected.txt t/%/input.hbs t/%/variables.json
 	@ echo $<
-	@ ./luabars-cli --input $</input.hbs \
+	@ ./handlebars-cli --input $</input.hbs \
 		        --variables $</variables.json \
 			--helpers $</helpers.lua \
 			--inline_helpers $</inline_helpers.lua \
@@ -17,7 +17,7 @@ t/%/output.txt: t/% luabars-cli $(LUA) t/%/expected.txt t/%/input.hbs t/%/variab
 	@ diff $</expected.txt $@
 
 README.md: README.md.hbs README.lua
-	./luabars-cli --input $< --variables README.lua > $@
+	./handlebars-cli --input $< --variables README.lua > $@
 
 clean-tests:
 	rm -f t/*/output.txt

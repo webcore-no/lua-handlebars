@@ -1,4 +1,4 @@
-local util = require("lib.luabars.util")
+local util = require("lib.handlebars.util")
 local cjson = require("cjson.safe")
 local err_printf = util.err_printf
 

@@ -1,10 +1,10 @@
-local util = require("lib.luabars.util")
-local parser = require("lib.luabars.parser")
-local code = require("lib.luabars.code")
-local base_helpers = require("lib.luabars.helpers")
-local inline_helpers = require("lib.luabars.inline_helpers")
-local unsafe_inline_helpers = require("lib.luabars.unsafe_inline_helpers")
-local optimizer = require("lib.luabars.optimizer")
+local util = require("lib.handlebars.util");
+local parser = require("lib.handlebars.parser")
+local code = require("lib.handlebars.code")
+local base_helpers = require("lib.handlebars.helpers")
+local inline_helpers = require("lib.handlebars.inline_helpers")
+local unsafe_inline_helpers = require("lib.handlebars.unsafe_inline_helpers")
+local optimizer = require("lib.handlebars.optimizer")
 
 local err_printf = util.err_printf
 local shallow_copy = util.shallow_copy

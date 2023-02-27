@@ -1,6 +1,6 @@
 local cjson = require("cjson.safe")
 
-local util = require("lib.luabars.util")
+local util = require("lib.handlebars.util")
 local err_printf = util.err_printf
 
 local format = string.format
