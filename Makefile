@@ -11,13 +11,12 @@ t/%/output.txt: t/% handlebars-cli $(LUA) t/%/expected.txt t/%/input.hbs t/%/var
 	@ echo $<
 	@ ./handlebars-cli --input $</input.hbs \
 		        --variables $</variables.json \
-			--helpers $</helpers.lua \
-			--inline_helpers $</inline_helpers.lua \
+			--helpers $</helpers \
 		> $@ 2> $</stderr.txt
 	@ diff $</expected.txt $@
 
-README.md: README.md.hbs README.lua
-	./handlebars-cli --input $< --variables README.lua > $@
+README.md: README/template.md.hbs README/variables.lua README/helpers.lua
+	./handlebars-cli --input $< --variables README/variables.lua > $@
 
 clean-tests:
 	rm -f t/*/output.txt

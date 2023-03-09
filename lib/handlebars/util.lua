@@ -6,9 +6,14 @@ function _M.err_printf(...)
 	io.stderr:write('\n')
 end
 
+
+function _M.printf(...)
+	io.stdout:write(format(...))
+	io.stdout:write('\n')
+end
+
 function _M.escape_string(str)
 	local quote = '"'
-
 	str = str:gsub("\\", [[\\]])
 	str = str:gsub("\n", [[\n]])
 	str = str:gsub("\b", [[\b]])

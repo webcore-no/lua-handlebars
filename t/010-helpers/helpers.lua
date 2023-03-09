@@ -1,3 +1,0 @@
-return {
-	loud = string.upper
-}

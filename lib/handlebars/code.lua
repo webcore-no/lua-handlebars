@@ -1,6 +1,7 @@
 local cjson = require("cjson.safe")
 
 local util = require("lib.handlebars.util")
+local default_helpers = require("lib.handlebars.helpers")
 local err_printf = util.err_printf
 
 local format = string.format
@@ -115,18 +116,17 @@ function _CODE:unwrap_params(args)
 end
 
 function _CODE:helper(name, data)
-	if self.inline_helpers[name] then
-		return self.inline_helpers[name](self, data)
+	local helper = self.helpers[name] or default_helpers[name]
+	if helper and helper.stage == "code_generation" then
+		return helper.func(self, data)
 	end
-	if self.helpers[name] then
-		local fn = self:define(format('helpers.%s', name))
-		local args, err = self:unwrap_params(data.params)
-		if not args then
-			return nil, err
-		end
-		return format('%s(out, %s(%s))',self:define(print_func), fn, args)
+	local fn
+	if helper and default_helpers[name] then
+		fn = self:define(format('helpers[%q] and helpers[%q].func or default_helpers[%q].func', name, name, name))
+	else
+		fn = self:define(format('helpers[%q] and helpers[%q].func or error(\'helper %q is not defined\')', name, name, name))
 	end
-	return nil, format("helper %q does not exist", name)
+	return format('%s(out, %s(%s))',self:define(print_func), fn, self:unwrap_params(data.params))
 end
 
 function _CODE:gen_comment(token)
@@ -305,23 +305,28 @@ function _CODE:generate_code(token)
 	end
 end
 
-function _M.ast_to_code(tokens, helpers, inline_helpers)
+function _M.ast_to_code(tokens, helpers_path, helpers)
 	err_printf("tokens:\n\n%s\n\n", cjson.encode(tokens))
 	local ret = {
 		helpers = helpers or {},
-		inline_helpers = inline_helpers or {},
+		helpers_path = helpers_path,
 		code = {},
 		depth = 0,
 		defines = {},
 		self_stack = {},
 	}
 	setmetatable(ret, _MT)
-	-- Helper wrapper
-	ret:scope_up('return function(helpers)')
+	-- Require helpers
+	if ret.helpers_path then
+		ret:emit('local helpers = require(%q)', ret.helpers_path)
+	else
+		ret:emit('local helpers = {}', ret.helpers_path)
+	end
+	ret:emit('local default_helpers = require("lib/handlebars/helpers")')
+
 	-- Generate defines
 	ret:emit(ret.gen_defines, ret)
 	local err = ret:generate_code(tokens)
-	ret:scope_down()
 	if err then
 		return nil, err
 	end

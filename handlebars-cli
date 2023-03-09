@@ -2,7 +2,6 @@
 local handlebars = require("lib.handlebars")
 local cjson = require("cjson.safe")
 local err_printf = require("lib.handlebars.util").err_printf
-local handlebarsc = handlebars.new()
 
 
 local function read_file(path)
@@ -33,20 +32,19 @@ for i, v in ipairs(arg) do
       end
 end
 
-local helpers = read_file(arguments.helpers)
-if helpers then
-   helpers = loadstring(helpers)
-   handlebarsc:register_helpers(helpers())
+local helpers
+if arguments.helpers then
+   helpers = io.open(arguments.helpers .. ".lua", 'r+')
+   if helpers then
+      helpers = require(arguments.helpers)
+   end
+else
+   arguments.helpers = nil
 end
 
+local handlebarsc = handlebars.new(helpers and arguments.helpers, helpers)
 
-local inline_helpers = read_file(arguments.inline_helpers)
-if inline_helpers then
-   inline_helpers = loadstring(inline_helpers)
-   handlebarsc:register_inline_helpers(inline_helpers())
-end
-
-local template, err = handlebarsc:from_file(arguments.input)
+local template, err = handlebarsc:compile_template_file(arguments.input)
 
 if not template then
    err_printf("Failed to generate template: %s", err)
@@ -57,7 +55,7 @@ local data
 data = read_file(arguments.variables)
 if data then
    if arguments.variables:match(".*.lua") then
-      err_printf(data)
+      -- err_printf(data)
       data, err = loadstring(data)
       if err ~= nil then
          err_printf("error: %s", err)

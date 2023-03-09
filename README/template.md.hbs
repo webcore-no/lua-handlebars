@@ -1,0 +1,32 @@
+# Lua handlebars
+A handlebars like template library for lua.
+
+## Helpers
+
+{{#each helpers}}
+## {{ @key }}
+{{#if block}}
+<a style="margin: 4px;color: white;background: #5757b5;border-radius: 10px;padding: 2px;padding-left: 7px;padding-right: 7px;" href="./docs/helper.md#block">
+Block
+</a>
+{{/if}}
+{{#if idempotent}}
+<a style="margin: 4px;color: white;background: #55bd63;border-radius: 10px;padding: 2px;padding-left: 7px;padding-right: 7px;" href="./docs/helper.md#idempotent">
+Idempotent
+</a>
+{{/if}}
+
+stage: ```{{ stage }}```
+
+
+{{ description }}
+{{#if example}}
+### Example
+```handlebars
+{{ example }}
+```
+{{/if}}
+{{/each}}
+
+## Requiremnets
+ - [LPEG](http://www.inf.puc-rio.br/~roberto/lpeg/)

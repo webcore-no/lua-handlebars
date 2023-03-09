@@ -1,13 +1,9 @@
 local util = require("lib.handlebars.util");
 local parser = require("lib.handlebars.parser")
 local code = require("lib.handlebars.code")
-local base_helpers = require("lib.handlebars.helpers")
-local inline_helpers = require("lib.handlebars.inline_helpers")
-local unsafe_inline_helpers = require("lib.handlebars.unsafe_inline_helpers")
+local default_helpers = require("lib.handlebars.helpers")
 local optimizer = require("lib.handlebars.optimizer")
 
-local err_printf = util.err_printf
-local shallow_copy = util.shallow_copy
 
 local _T = {}
 
@@ -24,18 +20,30 @@ function bars_mt:register_helpers(tbl)
 	end
 end
 
-function bars_mt:register_inline_helper(key, value)
-	self.inline_helpers[key] = value
-end
-
-function bars_mt:register_inline_helpers(tbl)
-	for k, v in pairs(tbl) do
-		self:register_inline_helper(k,v)
+function bars_mt:register_helpers_file(path)
+	local file, data, tbl, err
+	file, err = io.open(path, 'r+')
+	if not file then
+		return false, err
 	end
+	data, err = file:read('*all')
+	if not data then
+		return false, err
+	end
+
+	data, err = loadstring(data)
+	if not data then
+		return false, err
+	end
+	tbl = data() or {}
+	for k, v in pairs(tbl) do
+		self:register_helper(k,v)
+	end
+	return true
 end
 
 
-function bars_mt:from_string(data)
+function bars_mt:compile_template(data)
 	local ast, err, c, f
 	-- Remove trailing whitespace added by lua
 	ast, err = parser.parse(data)
@@ -44,7 +52,7 @@ function bars_mt:from_string(data)
 	end
 	optimizer.optimize(ast)
 
-	c, err = code.ast_to_code(ast, self.helpers, self.inline_helpers)
+	c, err = code.ast_to_code(ast, self.helpers_path, self.helpers)
 	if not c then
 		return nil, err
 	end
@@ -52,10 +60,10 @@ function bars_mt:from_string(data)
 	if not f then
 		return nil, err
 	end
-	return f()(self.helpers)
+	return f()
 end
 
-function bars_mt:from_file(path)
+function bars_mt:compile_template_file(path)
 	local file, data, err
 	file, err = io.open(path, 'r+')
 	if not file then
@@ -67,21 +75,15 @@ function bars_mt:from_file(path)
 	end
 	-- Remove trailing whitespace added by lua
 	data = data:sub(1, -2)
-	return self:from_string(data)
+	return self:compile_template(data)
 end
 
-function _T.new_safe()
+function _T.new(helpers_path, helpers)
 	local t = {
-		helpers = shallow_copy(base_helpers),
-		inline_helpers = shallow_copy(inline_helpers)
+		helpers = helpers or {},
+		helpers_path = helpers_path
 	}
 	setmetatable(t, bars)
-	return t
-end
-
-function _T.new()
-	local t = _T.new_safe()
-	t:register_inline_helpers(unsafe_inline_helpers)
 	return t
 end
 
