@@ -1,4 +1,4 @@
-local files = io.popen("find ./ -type f -name '0*.lua' | sort")
+local files = io.popen("find examples -type f -name '0*.lua' | sort")
 
 local examples = {}
 local ret = {
@@ -30,7 +30,11 @@ for file in files:lines() do
 		end
 		result = result .. "\n"
 	end
-	loadstring(code)()
+	local func =loadstring(code)
+	if not func then
+		error("Failed to load file: " .. file)
+	end
+	func()
 	print = p
 	examples[#examples + 1] = {
 		name = file,
